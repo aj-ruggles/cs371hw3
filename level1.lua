@@ -8,8 +8,18 @@ local scene = composer.newScene()
 -- -----------------------------------------------------------------------------------------------------------------
 
 -- local forward references should go here
+-- characters
+local alex, parplin
 
-local alex, janken
+-- frames for each parplin hand
+local parplinHand = {
+    [1] = 10,   --rock
+    [2] = 9,    --paper
+    [3] = 14,   --scissor
+}
+
+-- wigetbuttons
+local btnGo, btnRock, btnPaper, btnScissor
 
 ---------- ALEX KIDD  -------------------------------------
 local options =
@@ -38,19 +48,19 @@ local seqData = {
 
 }
 
----------- JANKEN  ---------------------------------------
+---------- PARPLIN  ---------------------------------------
 
 
 local baddieSheet = graphics.newImageSheet( "res/chars.png", sheetInfo:getSheet() )
 
--- Create animation sequence janken
-local seqDataJanken = {
-    {name = "taunt", frames={7,8}, time = 500},
-    {name = "shake", frames={4,5}, time = 500},    
-    {name = "set", frames={3}, time = 10, loopCount=1}, 
-    {name = "rock", frames={2}, time = 5000},  
-    {name = "paper", frames={1}, time = 5000},
-    {name = "scissor", frames={6}, time = 5000},      
+-- Create animation sequence parplin
+local seqDataParplin = {
+    {name = "taunt", frames={15,16}, time = 500},
+    {name = "shake", frames={12,13}, time = 500},    
+    {name = "set", frames={11}, time = 10, loopCount=1}, 
+    {name = "rock", frames={10}, time = 5000},  
+    {name = "paper", frames={9}, time = 5000},
+    {name = "scissor", frames={14}, time = 5000},      
 }
 
 ---------- BUTTONS  ---------------------------------------
@@ -70,7 +80,11 @@ local buttonSheet = graphics.newImageSheet( "res/button.png", btnOpt )
 
 
 -- -------------------------------------------------------------------------------------
-
+local function delete(obj)
+    obj:removeSelf()
+    obj = nil
+end
+--================== Buttons to Change Scenes ===============--
 
 local function level2BtnListener( event )
     composer.gotoScene( "level2", "fade", 800)
@@ -84,19 +98,51 @@ local function sceneEndBtnListener( event )
     composer.gotoScene( "sceneEnd", "fade", 800)
 end
 
+--^^^^^^^^^^^^^^^^^ Buttons to Change Scenes ^^^^^^^^^^^^^^^--
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function function_name( ... )
+    -- body
+end
+
+
+local function playPreview()
+    parplin:setSequence( "shake" )
+    parplin:play()
+    transition.to(parplin, {time = 1500, onComplete=stopWalking})
+end
+
+--==================== Parplin Transitions ===================--
+
 local function startWalking( event )
     alex:play()
-    janken:play()
+    parplin:play()
+    delete( btnGo )
 end
 
 local function stopWalking( event )
     alex:pause()
     alex:setFrame(2)
+    playPreview()
 end
 
 local function go( event )
+    --parplin.xScale = 1
     transition.to(alex, {time = 2500, x=145, onStart=startWalking, onComplete=stopWalking})
 end
+
+
 
 
 
@@ -119,20 +165,23 @@ function scene:create( event )
     alex.anchorX = 0
     alex.anchorY = 1
 
-    janken = display.newSprite (baddieSheet, seqDataJanken)
+    parplin = display.newSprite (baddieSheet, seqDataParplin)
 
-    janken.x = display.contentCenterX+75
-    janken.y = display.contentCenterY+58
+    parplin.x = display.contentCenterX+75
+    parplin.y = display.contentCenterY+58
 
-    janken.anchorX = 0
-    janken.anchorY = 1
+    parplin.anchorX = .5
+    parplin.anchorY = 1
+    parplin.xScale = -1
+    
+
 
 
 
     ------------------------------------------------------------------------------
     -- add the widgets to go, and pick rock paper scissor 
     ------------------------------------------------------------------------------
-    local btnGo = widget.newButton(
+    btnGo = widget.newButton(
         {
             x = 200,
             y = 20,    
@@ -146,11 +195,62 @@ function scene:create( event )
         }
     )
 
+    btnRock = widget.newButton(
+        {
+            x = 80,
+            y = 20,    
+            id = "btnRock",
+            label = "Rock",
+            labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+            sheet = buttonSheet,
+            defaultFrame = 1,
+            overFrame = 2,
+            onEvent = play,
+            isEnabled = false,
+        }
+    )
+
+    btnPaper = widget.newButton(
+        {
+            x = 80,
+            y = 50,    
+            id = "btnPaper",
+            label = "Paper",
+            labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+            sheet = buttonSheet,
+            defaultFrame = 1,
+            overFrame = 2,
+            onEvent = play,
+            isEnabled = false,
+        }
+    )
+
+    btnScissor = widget.newButton(
+        {
+            x = 80,
+            y = 80,    
+            id = "btnScissor",
+            label = "Scissor",
+            labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+            sheet = buttonSheet,
+            defaultFrame = 1,
+            overFrame = 2,
+            onEvent = play,
+            isEnabled = false,
+        }
+    )
+
+
+
 
 
     -- Example: add display objects to "sceneGroup", add touch listeners, etc.
     sceneGroup:insert( alex )
-    sceneGroup:insert( janken )
+    sceneGroup:insert( parplin )
+    sceneGroup:insert( btnGo )
+    sceneGroup:insert( btnPaper )
+    sceneGroup:insert( btnRock )
+    sceneGroup:insert( btnScissor )
 
 end
 
@@ -164,6 +264,7 @@ function scene:show( event )
     if ( phase == "will" ) then
         -- Called when the scene is still off screen (but is about to come on screen).
     elseif ( phase == "did" ) then
+        parplin:play()
         -- Called when the scene is now on screen.
         -- Insert code here to make the scene come alive.
         -- Example: start timers, begin animation, play audio, etc.
