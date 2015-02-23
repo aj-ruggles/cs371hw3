@@ -11,13 +11,6 @@ local scene = composer.newScene()
 -- characters
 local alex, parplin
 
--- frames for each parplin hand
-local parplinHand = {
-    [1] = 10,   --rock
-    [2] = 9,    --paper
-    [3] = 14,   --scissor
-}
-
 -- wigetbuttons
 local btnGo, btnRock, btnPaper, btnScissor
 
@@ -78,12 +71,6 @@ local btnOpt =
 local buttonSheet = graphics.newImageSheet( "res/button.png", btnOpt )
 
 
-
--- -------------------------------------------------------------------------------------
-local function delete(obj)
-    obj:removeSelf()
-    obj = nil
-end
 --================== Buttons to Change Scenes ===============--
 
 local function level2BtnListener( event )
@@ -99,35 +86,151 @@ local function sceneEndBtnListener( event )
 end
 
 --^^^^^^^^^^^^^^^^^ Buttons to Change Scenes ^^^^^^^^^^^^^^^--
+--==================== Parplin Transitions ===================--
+local playMove, playPreview, moveTable, playShake, playCount
+playCount = 1; moveTable = {}
+alexPlay = nil
 
+local parplinPlayedHand
 
+local function delete(obj)
+    obj:removeSelf()
+    obj = nil
+end
 
+local function alexPlayedRock( event )
+    alexPlay = true
+    alex.choice = 1
+end
 
+local function alexPlayedPaper( event )
+    alexPlay = true
+    alex.choice = 2
+end
 
-
-
-
-
-
-
-
-
-local function function_name( ... )
-    -- body
+local function alexPlayedScissor( event )
+    alexPlay = true
+    alex.choice = 3
 end
 
 
-local function playPreview()
-    parplin:setSequence( "shake" )
-    parplin:play()
-    transition.to(parplin, {time = 1500, onComplete=stopWalking})
+function playMove()
+    parplinPlayedHand = display.newSprite (baddieSheet, seqDataParplin)
+    parplinPlayedHand.x = display.contentCenterX+58 
+    parplinPlayedHand.y = display.contentCenterY+58
+    parplin.anchorX = 1
+    parplin.anchorY = 1
+
+    if moveTable[playCount] == 1 and playCount <= 3 then 
+        transition.to(parplin, {time = 1500, onComplete=playShake})
+        parplin:setSequence( "set" )
+        parplin:play()
+
+        parplinPlayedHand:setSequence( "rock" )
+        parplinPlayedHand:play()
+
+    elseif moveTable[playCount] == 2 and playCount <= 3 then
+        transition.to(parplin, {time = 1500, onComplete=playShake})
+        parplin:setSequence( "set" )
+        parplin:play()
+
+        parplinPlayedHand:setSequence( "paper" )
+        parplinPlayedHand:play()
+
+    elseif moveTable[playCount] == 3 and playCount <= 3 then
+        transition.to(parplin, {time = 1500, onComplete=playShake})
+        parplin:setSequence( "set" )
+        parplin:play()
+
+        parplinPlayedHand:setSequence( "scissor" )
+        parplinPlayedHand:play()
+    end
+
+    if alexPlay then
+        alexPlay = false
+        if alex.choice == 1 then          --rock
+            alex:setSequence("rock")
+            alex:play()
+            if moveTable[playCount] == 2 then alex.lose = alex.lose + 1 else alex.win = alex.win + 1 end
+        elseif alex.choice == 2 then      --paper
+            alex:setSequence("paper")
+            alex:play()
+            if moveTable[playCount] == 3 then alex.lose = alex.lose + 1 else alex.win = alex.win + 1 end
+        elseif alex.choice == 3 then           --scissor
+            alex:setSequence("scissor")
+            alex:play()
+            if moveTable[playCount] == 1 then alex.lose = alex.lose + 1 else alex.win = alex.win + 1 end
+        end
+    else
+        alexPlay = false
+        if moveTable[playCount] == 1 then          
+            alex:setSequence("scissor")
+            alex:play()
+        elseif moveTable[playCount] == 2 then      
+            alex:setSequence("rock")
+            alex:play()
+        else                                       
+            alex:setSequence("paper")
+            alex:play()
+        end
+        alex.lose = alex.lose + 1
+    end
+
+    playCount = playCount + 1
+end
+
+function playShake()
+    if parplinPlayedHand then delete(parplinPlayedHand) end
+    if playCount > 3 then
+        parplin:setSequence("taunt")
+        parplin:play()
+
+        alex:setSequence("normal")
+        alex:pause()
+        alex:setFrame(2)
+        
+        --add what happens on a win or lose
+    else 
+
+        parplin:setSequence("shake")
+        parplin:play()
+
+        alex:setSequence("shake")
+        alex:play()
+        transition.to(parplin, {time = 1500, onComplete=playMove})
+    end
+end
+
+function playPreview()
+    for i=1,3 do
+        moveTable[i] = math.random(1,3) 
+        local parplinHand = display.newSprite (baddieSheet, seqDataParplin)
+        parplinHand.x = display.contentCenterX+42 + 16*(i-1)
+        parplinHand.y = display.contentCenterY+15
+
+
+        if (moveTable[i] == 1) then
+            parplinHand:setSequence( "rock" )
+            parplinHand:play()
+        elseif (moveTable[i] == 2) then
+            parplinHand:setSequence( "paper" )
+            parplinHand:play()
+        elseif (moveTable[i] == 3) then
+            parplinHand:setSequence( "scissor" )
+            parplinHand:play()
+        end
+
+        local handTimer = timer.performWithDelay(5000, function()
+            delete(parplinHand)
+        end, 1)
+    end
+    transition.to(parplin, {time = 5000, onComplete=playShake})
 end
 
 --==================== Parplin Transitions ===================--
 
 local function startWalking( event )
     alex:play()
-    parplin:play()
     delete( btnGo )
 end
 
@@ -139,7 +242,7 @@ end
 
 local function go( event )
     --parplin.xScale = 1
-    transition.to(alex, {time = 2500, x=145, onStart=startWalking, onComplete=stopWalking})
+    transition.to(alex, {time = 2500, x=135, onStart=startWalking, onComplete=stopWalking})
 end
 
 
@@ -161,6 +264,8 @@ function scene:create( event )
     alex:setFrame(2)
     alex.x = display.contentCenterX-95
     alex.y = display.contentCenterY+58
+    alex.lose = 0
+    alex.win = 0
 
     alex.anchorX = 0
     alex.anchorY = 1
@@ -170,9 +275,8 @@ function scene:create( event )
     parplin.x = display.contentCenterX+75
     parplin.y = display.contentCenterY+58
 
-    parplin.anchorX = .5
+    parplin.anchorX = 1
     parplin.anchorY = 1
-    parplin.xScale = -1
     
 
 
@@ -205,8 +309,8 @@ function scene:create( event )
             sheet = buttonSheet,
             defaultFrame = 1,
             overFrame = 2,
-            onEvent = play,
-            isEnabled = false,
+            onPress = alexPlayedRock,
+            isEnabled = true,
         }
     )
 
@@ -220,8 +324,8 @@ function scene:create( event )
             sheet = buttonSheet,
             defaultFrame = 1,
             overFrame = 2,
-            onEvent = play,
-            isEnabled = false,
+            onPress = alexPlayedPaper,
+            isEnabled = true,
         }
     )
 
@@ -235,8 +339,8 @@ function scene:create( event )
             sheet = buttonSheet,
             defaultFrame = 1,
             overFrame = 2,
-            onEvent = play,
-            isEnabled = false,
+            onPress = alexPlayedScissor,
+            isEnabled = true,
         }
     )
 
