@@ -116,8 +116,8 @@ end
 
 function playMove()
     parplinPlayedHand = display.newSprite (baddieSheet, seqDataParplin)
-    parplinPlayedHand.x = display.contentCenterX+58 
-    parplinPlayedHand.y = display.contentCenterY+58
+    parplinPlayedHand.x = display.contentCenterX+52
+    parplinPlayedHand.y = display.contentCenterY+42
     parplin.anchorX = 1
     parplin.anchorY = 1
 
@@ -148,15 +148,15 @@ function playMove()
 
     if alexPlay then
         alexPlay = false
-        if alex.choice == 1 then          --rock
+        if alex.choice == 1 then         
             alex:setSequence("rock")
             alex:play()
             if moveTable[playCount] == 2 then alex.lose = alex.lose + 1 else alex.win = alex.win + 1 end
-        elseif alex.choice == 2 then      --paper
+        elseif alex.choice == 2 then      
             alex:setSequence("paper")
             alex:play()
             if moveTable[playCount] == 3 then alex.lose = alex.lose + 1 else alex.win = alex.win + 1 end
-        elseif alex.choice == 3 then           --scissor
+        elseif alex.choice == 3 then           
             alex:setSequence("scissor")
             alex:play()
             if moveTable[playCount] == 1 then alex.lose = alex.lose + 1 else alex.win = alex.win + 1 end
@@ -188,7 +188,10 @@ function playShake()
         alex:setSequence("normal")
         alex:pause()
         alex:setFrame(2)
-        
+
+        transition.fadeOut( btnRock, { time=1000, onComplete=delete } )
+        transition.fadeOut( btnPaper, { time=1000, onComplete=delete} )
+        transition.fadeOut( btnScissor, { time=1000, onComplete=delete} )
         --add what happens on a win or lose
     else 
 
@@ -231,7 +234,7 @@ end
 
 local function startWalking( event )
     alex:play()
-    delete( btnGo )
+    transition.fadeOut( btnGo, { time=1000, onComplete=delete } )
 end
 
 local function stopWalking( event )
@@ -241,7 +244,6 @@ local function stopWalking( event )
 end
 
 local function go( event )
-    --parplin.xScale = 1
     transition.to(alex, {time = 2500, x=135, onStart=startWalking, onComplete=stopWalking})
 end
 
@@ -295,6 +297,7 @@ function scene:create( event )
             sheet = buttonSheet,
             defaultFrame = 1,
             overFrame = 2,
+            alpha = 0,
             onPress = go,
         }
     )

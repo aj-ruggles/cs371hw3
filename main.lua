@@ -5,4 +5,4 @@
 local composer = require "composer"
 
 -- load menu screen
-composer.gotoScene( "level1", "fade", 800)
+composer.gotoScene( "level2", "fade", 800)
