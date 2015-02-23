@@ -114,7 +114,7 @@ local function creditsBtnListener( event )
     delete( btnLose ) 
     delete( btnQuit )
     delete( btnRetry )
-    composer.gotoScene( "credits", "fade", 800)
+    composer.gotoScene( "gameCredits", "fade", 800)
 end
 
 local function nextLevelMessage()
@@ -133,7 +133,7 @@ local function nextLevelMessage()
                 sheet = buttonSheet,
                 defaultFrame = 1,
                 overFrame = 2,
-                onPress = level2BtnListener,
+                onPress = creditsBtnListener,
                 isEnabled = true,
             }
         )
