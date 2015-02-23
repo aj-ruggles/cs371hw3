@@ -5,4 +5,4 @@
 local composer = require "composer"
 
 -- load menu screen
-composer.gotoScene( "credits", "fade", 800)
+composer.gotoScene( "startScreen", "fade", 800)

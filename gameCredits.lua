@@ -1,5 +1,5 @@
 local composer = require( "composer" )
-
+local widget = require( "widget" )
 local scene = composer.newScene()
 
 -- -----------------------------------------------------------------------------------------------------------------
@@ -7,18 +7,24 @@ local scene = composer.newScene()
 -- -----------------------------------------------------------------------------------------------------------------
 
 -- local forward references should go here
-local textMessage
+
 -- -------------------------------------------------------------------------------
 
+
+local function startBtnListener( event )
+    composer.gotoScene( "level1", "fade", 800)
+end
 
 -- "scene:create()"
 function scene:create( event )
 
     local sceneGroup = self.view
-    local text = "Made By: Austin Ruggles for cs371"
-    textMessage = display.newText( sceneGroup, text, display.contentCenterX, display.contentCenterX, 100, 12, monospace, 10 )
-    textMessage.alpa = 0
-    -- Initialize the scene here.
+
+
+    local text = "Credits \nAustin Ruggles \nCS371 \nProf. Kim"
+    local msg = display.newText( sceneGroup, text, display.contentCenterX, display.contentCenterY, display.contentWidth, 100, arial, 20 )
+    
+    sceneGroup:insert( msg )
     -- Example: add display objects to "sceneGroup", add touch listeners, etc.
 end
 
@@ -32,7 +38,6 @@ function scene:show( event )
     if ( phase == "will" ) then
         -- Called when the scene is still off screen (but is about to come on screen).
     elseif ( phase == "did" ) then
-        transition.fadeIn( textMessage, { time=1000 } )
         -- Called when the scene is now on screen.
         -- Insert code here to make the scene come alive.
         -- Example: start timers, begin animation, play audio, etc.

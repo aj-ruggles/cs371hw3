@@ -71,6 +71,9 @@ local btnOpt =
 local buttonSheet = graphics.newImageSheet( "res/button.png", btnOpt )
 
 
+---------- DELETE  ---------------------------------------
+-- this will make deleting things much easier.
+
 local function delete(obj)
     if obj then obj:removeSelf(); obj = nil end
 end
