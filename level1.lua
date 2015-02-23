@@ -12,7 +12,7 @@ local scene = composer.newScene()
 local alex, parplin
 
 -- wigetbuttons
-local btnGo, btnRock, btnPaper, btnScissor
+local btnGo, btnRock, btnPaper, btnScissor, btnWin, btnLose, messageBox, textMessage, btnQuit
 
 ---------- ALEX KIDD  -------------------------------------
 local options =
@@ -71,18 +71,104 @@ local btnOpt =
 local buttonSheet = graphics.newImageSheet( "res/button.png", btnOpt )
 
 
+local function delete(obj)
+    if obj then obj:removeSelf(); obj = nil end
+end
+
 --================== Buttons to Change Scenes ===============--
 
 local function level2BtnListener( event )
+    delete( messageBox )
+    delete( textMessage )
+    delete( btnWin )
+    delete( btnLose ) 
+    delete( btnQuit )
     composer.gotoScene( "level2", "fade", 800)
 end
 
 local function level1BtnListener( event )
+    delete( messageBox )
+    delete( textMessage )
+    delete( btnWin )
+    delete( btnLose ) 
+    delete( btnQuit )
     composer.gotoScene( "level1", "fade", 800)
 end
 
-local function sceneEndBtnListener( event )
-    composer.gotoScene( "sceneEnd", "fade", 800)
+local function startScreenBtnListener( event )
+    delete( messageBox )
+    delete( textMessage )
+    delete( btnWin )
+    delete( btnLose ) 
+    delete( btnQuit )
+    composer.gotoScene( "startScreen", "fade", 800)
+end
+
+local function nextLevelMessage()
+    messageBox = display.newRoundedRect( display.contentCenterX, display.contentCenterY, 200, 100, 5 )
+    messageBox:setFillColor(.2,.2,.2,.4)
+    textMessage = display.newText( "Hello, World", display.contentCenterX, display.contentCenterY, 100, 50, arial ,20 )
+    if alex.win > alex.lose then
+        textMessage.text = "You Win"
+        btnWin = widget.newButton(
+            {
+                x = display.contentCenterX+50,
+                y = display.contentCenterY+35,  
+                id = "btnWin",
+                label = "Continue",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = level2BtnListener,
+                isEnabled = true,
+            }
+        )
+        btnQuit = widget.newButton(
+            {
+                x = display.contentCenterX-50,
+                y = display.contentCenterY+35,  
+                id = "btnLose",
+                label = "Quit",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = startScreenBtnListener,
+                isEnabled = true,
+            }
+        )
+    else 
+        textMessage.text = "You Lose"
+        btnQuit = widget.newButton(
+            {
+                x = display.contentCenterX-50,
+                y = display.contentCenterY+35,  
+                id = "btnLose",
+                label = "Quit",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = startScreenBtnListener,
+                isEnabled = true,
+            }
+        )
+        btnLose = widget.newButton(
+            {
+                x = display.contentCenterX+50,
+                y = display.contentCenterY+35,  
+                id = "btnLose",
+                label = "Retry",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = level1BtnListener,
+                isEnabled = true,
+            }
+        )
+    end
 end
 
 --^^^^^^^^^^^^^^^^^ Buttons to Change Scenes ^^^^^^^^^^^^^^^--
@@ -92,11 +178,6 @@ playCount = 1; moveTable = {}
 alexPlay = nil
 
 local parplinPlayedHand
-
-local function delete(obj)
-    obj:removeSelf()
-    obj = nil
-end
 
 local function alexPlayedRock( event )
     alexPlay = true
@@ -115,11 +196,13 @@ end
 
 
 function playMove()
+    parplinPlayedHand.alpha = 1
     parplinPlayedHand = display.newSprite (baddieSheet, seqDataParplin)
     parplinPlayedHand.x = display.contentCenterX+52
     parplinPlayedHand.y = display.contentCenterY+42
     parplin.anchorX = 1
     parplin.anchorY = 1
+
 
     if moveTable[playCount] == 1 and playCount <= 3 then 
         transition.to(parplin, {time = 1500, onComplete=playShake})
@@ -188,10 +271,13 @@ function playShake()
         alex:setSequence("normal")
         alex:pause()
         alex:setFrame(2)
+        playCount = 1
 
         transition.fadeOut( btnRock, { time=1000, onComplete=delete } )
         transition.fadeOut( btnPaper, { time=1000, onComplete=delete} )
         transition.fadeOut( btnScissor, { time=1000, onComplete=delete} )
+
+        nextLevelMessage()
         --add what happens on a win or lose
     else 
 
@@ -211,6 +297,7 @@ function playPreview()
         parplinHand.x = display.contentCenterX+42 + 16*(i-1)
         parplinHand.y = display.contentCenterY+15
 
+        btnGo.param:insert( parplinHand )
 
         if (moveTable[i] == 1) then
             parplinHand:setSequence( "rock" )
@@ -279,14 +366,25 @@ function scene:create( event )
 
     parplin.anchorX = 1
     parplin.anchorY = 1
-    
 
 
 
+    -- Example: add display objects to "sceneGroup", add touch listeners, etc.
+    sceneGroup:insert( alex )
+    sceneGroup:insert( parplin )
 
-    ------------------------------------------------------------------------------
-    -- add the widgets to go, and pick rock paper scissor 
-    ------------------------------------------------------------------------------
+
+end
+
+
+-- "scene:show()"
+function scene:show( event )
+
+    local sceneGroup = self.view
+    local phase = event.phase
+
+    if ( phase == "will" ) then
+        -- Called when the scene is still off screen (but is about to come on screen).
     btnGo = widget.newButton(
         {
             x = 200,
@@ -301,6 +399,7 @@ function scene:create( event )
             onPress = go,
         }
     )
+    btnGo.param = sceneGroup
 
     btnRock = widget.newButton(
         {
@@ -346,30 +445,19 @@ function scene:create( event )
             isEnabled = true,
         }
     )
+    parplinPlayedHand = display.newSprite (baddieSheet, seqDataParplin)
+    parplinPlayedHand.alpha = 0
+    alex.x = display.contentCenterX-95
+    alex.win = 0
+    alex.lose = 0
 
 
-
-
-
-    -- Example: add display objects to "sceneGroup", add touch listeners, etc.
-    sceneGroup:insert( alex )
-    sceneGroup:insert( parplin )
     sceneGroup:insert( btnGo )
     sceneGroup:insert( btnPaper )
     sceneGroup:insert( btnRock )
     sceneGroup:insert( btnScissor )
+    sceneGroup:insert( parplinPlayedHand )
 
-end
-
-
--- "scene:show()"
-function scene:show( event )
-
-    local sceneGroup = self.view
-    local phase = event.phase
-
-    if ( phase == "will" ) then
-        -- Called when the scene is still off screen (but is about to come on screen).
     elseif ( phase == "did" ) then
         parplin:play()
         -- Called when the scene is now on screen.

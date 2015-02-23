@@ -12,7 +12,7 @@ local scene = composer.newScene()
 local alex, janken
 
 -- wigetbuttons
-local btnGo, btnRock, btnPaper, btnScissor
+local btnGo, btnRock, btnPaper, btnScissor, btnWin, btnLose, btnRetry, messageBox, textMessage, btnQuit
 
 ---------- ALEX KIDD  -------------------------------------
 local options =
@@ -71,18 +71,131 @@ local btnOpt =
 local buttonSheet = graphics.newImageSheet( "res/button.png", btnOpt )
 
 
+local function delete(obj)
+    if obj then obj:removeSelf(); obj = nil end
+end
+
 --================== Buttons to Change Scenes ===============--
 
 local function level2BtnListener( event )
+    delete( messageBox )
+    delete( textMessage )
+    delete( btnWin )
+    delete( btnLose ) 
+    delete( btnQuit )
+    delete( btnRetry )
     composer.gotoScene( "level2", "fade", 800)
 end
 
 local function level1BtnListener( event )
+    delete( messageBox )
+    delete( textMessage )
+    delete( btnWin )
+    delete( btnLose ) 
+    delete( btnQuit )
+    delete( btnRetry )
     composer.gotoScene( "level1", "fade", 800)
 end
 
-local function sceneEndBtnListener( event )
-    composer.gotoScene( "sceneEnd", "fade", 800)
+local function startScreenBtnListener( event )
+    delete( messageBox )
+    delete( textMessage )
+    delete( btnWin )
+    delete( btnLose ) 
+    delete( btnQuit )
+    delete( btnRetry )
+    composer.gotoScene( "startScreen", "fade", 800)
+end
+
+local function creditsBtnListener( event )
+    delete( messageBox )
+    delete( textMessage )
+    delete( btnWin )
+    delete( btnLose ) 
+    delete( btnQuit )
+    delete( btnRetry )
+    composer.gotoScene( "credits", "fade", 800)
+end
+
+local function nextLevelMessage()
+    messageBox = display.newRoundedRect( display.contentCenterX, display.contentCenterY, 200, 100, 5 )
+    messageBox:setFillColor(.2,.2,.2,.4)
+    textMessage = display.newText( "Hello, World", display.contentCenterX, display.contentCenterY, 100, 50, arial ,20 )
+    if alex.win > alex.lose then
+        textMessage.text = "You Win"
+        btnWin = widget.newButton(
+            {
+                x = display.contentCenterX+50,
+                y = display.contentCenterY+35,  
+                id = "btnWin",
+                label = "Credits",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = level2BtnListener,
+                isEnabled = true,
+            }
+        )
+        btnQuit = widget.newButton(
+            {
+                x = display.contentCenterX-50,
+                y = display.contentCenterY+35,  
+                id = "btnLose",
+                label = "Quit",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = startScreenBtnListener,
+                isEnabled = true,
+            }
+        )
+    else 
+        textMessage.text = "You Lose"
+        btnQuit = widget.newButton(
+            {
+                x = display.contentCenterX-50,
+                y = display.contentCenterY+35,  
+                id = "btnLose",
+                label = "Quit",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = startScreenBtnListener,
+                isEnabled = true,
+            }
+        )
+        btnLose = widget.newButton(
+            {
+                x = display.contentCenterX+50,
+                y = display.contentCenterY+10,  
+                id = "btnLose",
+                label = "Retry 1",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = level1BtnListener,
+                isEnabled = true,
+            }
+        )
+        btnRetry = widget.newButton(
+            {
+                x = display.contentCenterX+50,
+                y = display.contentCenterY+35,  
+                id = "btnRetry",
+                label = "Retry 2",
+                labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0 } },    
+                sheet = buttonSheet,
+                defaultFrame = 1,
+                overFrame = 2,
+                onPress = level2BtnListener,
+                isEnabled = true,
+            }
+        )
+    end
 end
 
 --^^^^^^^^^^^^^^^^^ Buttons to Change Scenes ^^^^^^^^^^^^^^^--
@@ -92,11 +205,6 @@ playCount = 1; moveTable = {}
 alexPlay = nil
 
 local jankenPlayedHand
-
-local function delete(obj)
-    obj:removeSelf()
-    obj = nil
-end
 
 local function alexPlayedRock( event )
     alexPlay = true
@@ -116,12 +224,12 @@ end
 
 function playMove()
     jankenPlayedHand = display.newSprite (baddieSheet, seqDatajanken)
-    jankenPlayedHand.x = display.contentCenterX+52
-    jankenPlayedHand.y = display.contentCenterY+42
+    jankenPlayedHand.x = display.contentCenterX+37
+    jankenPlayedHand.y = display.contentCenterY+34
     janken.anchorX = 1
     janken.anchorY = 1
 
-    if moveTable[playCount] == 1 and playCount <= 3 then 
+    if moveTable[playCount] == 1 and playCount <= 5 then 
         transition.to(janken, {time = 1500, onComplete=playShake})
         janken:setSequence( "set" )
         janken:play()
@@ -129,7 +237,7 @@ function playMove()
         jankenPlayedHand:setSequence( "rock" )
         jankenPlayedHand:play()
 
-    elseif moveTable[playCount] == 2 and playCount <= 3 then
+    elseif moveTable[playCount] == 2 and playCount <= 5 then
         transition.to(janken, {time = 1500, onComplete=playShake})
         janken:setSequence( "set" )
         janken:play()
@@ -137,7 +245,7 @@ function playMove()
         jankenPlayedHand:setSequence( "paper" )
         jankenPlayedHand:play()
 
-    elseif moveTable[playCount] == 3 and playCount <= 3 then
+    elseif moveTable[playCount] == 3 and playCount <= 5 then
         transition.to(janken, {time = 1500, onComplete=playShake})
         janken:setSequence( "set" )
         janken:play()
@@ -181,17 +289,20 @@ end
 
 function playShake()
     if jankenPlayedHand then delete(jankenPlayedHand) end
-    if playCount > 3 then
+    if playCount > 5 then
         janken:setSequence("taunt")
         janken:play()
 
         alex:setSequence("normal")
         alex:pause()
         alex:setFrame(2)
+        playCount = 1
 
         transition.fadeOut( btnRock, { time=1000, onComplete=delete } )
         transition.fadeOut( btnPaper, { time=1000, onComplete=delete} )
         transition.fadeOut( btnScissor, { time=1000, onComplete=delete} )
+
+        nextLevelMessage()
         --add what happens on a win or lose
     else 
 
@@ -204,12 +315,13 @@ function playShake()
     end
 end
 
+
 function playPreview()
-    for i=1,3 do
+    for i=1,5 do
         moveTable[i] = math.random(1,3) 
         local jankenHand = display.newSprite (baddieSheet, seqDatajanken)
-        jankenHand.x = display.contentCenterX+42 + 16*(i-1)
-        jankenHand.y = display.contentCenterY+15
+        jankenHand.x = display.contentCenterX+30 + 16*(i-1)
+        jankenHand.y = display.contentCenterY
 
 
         if (moveTable[i] == 1) then
@@ -223,11 +335,11 @@ function playPreview()
             jankenHand:play()
         end
 
-        local handTimer = timer.performWithDelay(5000, function()
+        local handTimer = timer.performWithDelay(3000, function()
             delete(jankenHand)
         end, 1)
     end
-    transition.to(janken, {time = 5000, onComplete=playShake})
+    transition.to(janken, {time = 3000, onComplete=playShake})
 end
 
 --==================== janken Transitions ===================--
@@ -244,8 +356,7 @@ local function stopWalking( event )
 end
 
 local function go( event )
-    --janken.xScale = 1
-    transition.to(alex, {time = 2500, x=135, onStart=startWalking, onComplete=stopWalking})
+    transition.to(alex, {time = 1900, x=120, onStart=startWalking, onComplete=stopWalking})
 end
 
 
@@ -280,14 +391,25 @@ function scene:create( event )
 
     janken.anchorX = 1
     janken.anchorY = 1
-    
 
 
 
+    -- Example: add display objects to "sceneGroup", add touch listeners, etc.
+    sceneGroup:insert( alex )
+    sceneGroup:insert( janken )
 
-    ------------------------------------------------------------------------------
-    -- add the widgets to go, and pick rock paper scissor 
-    ------------------------------------------------------------------------------
+
+end
+
+
+-- "scene:show()"
+function scene:show( event )
+
+    local sceneGroup = self.view
+    local phase = event.phase
+
+    if ( phase == "will" ) then
+        -- Called when the scene is still off screen (but is about to come on screen).
     btnGo = widget.newButton(
         {
             x = 200,
@@ -302,6 +424,7 @@ function scene:create( event )
             onPress = go,
         }
     )
+    btnGo.param = sceneGroup
 
     btnRock = widget.newButton(
         {
@@ -347,30 +470,19 @@ function scene:create( event )
             isEnabled = true,
         }
     )
+    jankenPlayedHand = display.newSprite (baddieSheet, seqDatajanken)
+    jankenPlayedHand.alpha = 0
+    alex.x = display.contentCenterX-95
+    alex.win = 0
+    alex.lose = 0
 
 
-
-
-
-    -- Example: add display objects to "sceneGroup", add touch listeners, etc.
-    sceneGroup:insert( alex )
-    sceneGroup:insert( janken )
     sceneGroup:insert( btnGo )
     sceneGroup:insert( btnPaper )
     sceneGroup:insert( btnRock )
     sceneGroup:insert( btnScissor )
+    sceneGroup:insert( jankenPlayedHand )
 
-end
-
-
--- "scene:show()"
-function scene:show( event )
-
-    local sceneGroup = self.view
-    local phase = event.phase
-
-    if ( phase == "will" ) then
-        -- Called when the scene is still off screen (but is about to come on screen).
     elseif ( phase == "did" ) then
         janken:play()
         -- Called when the scene is now on screen.
