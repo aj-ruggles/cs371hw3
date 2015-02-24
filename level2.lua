@@ -10,6 +10,7 @@ local scene = composer.newScene()
 -- local forward references should go here
 -- characters
 local alex, janken
+local level, attempt = 2, 1
 
 -- wigetbuttons
 local btnGo, btnRock, btnPaper, btnScissor, btnWin, btnLose, btnRetry, messageBox, textMessage, btnQuit
@@ -118,6 +119,7 @@ local function creditsBtnListener( event )
 end
 
 local function nextLevelMessage()
+    attempt = attempt + 1
     messageBox = display.newRoundedRect( display.contentCenterX, display.contentCenterY, 200, 100, 5 )
     messageBox:setFillColor(.2,.2,.2,.4)
     textMessage = display.newText( "Hello, World", display.contentCenterX, display.contentCenterY, 100, 50, arial ,20 )
@@ -485,6 +487,9 @@ function scene:show( event )
 
     elseif ( phase == "did" ) then
         janken:play()
+        local text = "level "..level.." Attempt "..attempt
+        local title = display.newText( sceneGroup, text, display.contentCenterX, 15, 100, 30, arial, 5 )
+        title:setFillColor( 0,0,0 )
         -- Called when the scene is now on screen.
         -- Insert code here to make the scene come alive.
         -- Example: start timers, begin animation, play audio, etc.

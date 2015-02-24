@@ -10,6 +10,7 @@ local scene = composer.newScene()
 -- local forward references should go here
 -- characters
 local alex, parplin
+local level, attempt = 1, 1
 
 -- wigetbuttons
 local btnGo, btnRock, btnPaper, btnScissor, btnWin, btnLose, messageBox, textMessage, btnQuit
@@ -38,7 +39,6 @@ local seqData = {
     {name = "rock", frames={7}},
     {name = "paper", frames={9}},
     {name = "scissor", frames={8}},
-
 }
 
 ---------- PARPLIN  ---------------------------------------
@@ -80,6 +80,7 @@ end
 
 --================== Buttons to Change Scenes ===============--
 
+-- delete all the message stuff and go to level 2
 local function level2BtnListener( event )
     delete( messageBox )
     delete( textMessage )
@@ -89,6 +90,7 @@ local function level2BtnListener( event )
     composer.gotoScene( "level2", "fade", 800)
 end
 
+-- delete all the message stuff and go to level 1
 local function level1BtnListener( event )
     delete( messageBox )
     delete( textMessage )
@@ -98,6 +100,7 @@ local function level1BtnListener( event )
     composer.gotoScene( "level1", "fade", 800)
 end
 
+-- delete all the message stuff and go to start screen
 local function startScreenBtnListener( event )
     delete( messageBox )
     delete( textMessage )
@@ -107,13 +110,16 @@ local function startScreenBtnListener( event )
     composer.gotoScene( "startScreen", "fade", 800)
 end
 
+-- display a message at the end of the screen.
 local function nextLevelMessage()
+    attempt = attempt + 1
     messageBox = display.newRoundedRect( display.contentCenterX, display.contentCenterY, 200, 100, 5 )
     messageBox:setFillColor(.2,.2,.2,.4)
     textMessage = display.newText( "Hello, World", display.contentCenterX, display.contentCenterY, 100, 50, arial ,20 )
+    -- you win 
     if alex.win > alex.lose then
         textMessage.text = "You Win"
-        btnWin = widget.newButton(
+        btnWin = widget.newButton(          -- contiune to next level
             {
                 x = display.contentCenterX+50,
                 y = display.contentCenterY+35,  
@@ -127,7 +133,7 @@ local function nextLevelMessage()
                 isEnabled = true,
             }
         )
-        btnQuit = widget.newButton(
+        btnQuit = widget.newButton(            -- quit and exit to start screen
             {
                 x = display.contentCenterX-50,
                 y = display.contentCenterY+35,  
@@ -143,7 +149,7 @@ local function nextLevelMessage()
         )
     else 
         textMessage.text = "You Lose"
-        btnQuit = widget.newButton(
+        btnQuit = widget.newButton(             -- quit and exit to start screen 
             {
                 x = display.contentCenterX-50,
                 y = display.contentCenterY+35,  
@@ -157,7 +163,7 @@ local function nextLevelMessage()
                 isEnabled = true,
             }
         )
-        btnLose = widget.newButton(
+        btnLose = widget.newButton(             -- retry the current level.
             {
                 x = display.contentCenterX+50,
                 y = display.contentCenterY+35,  
@@ -176,28 +182,34 @@ end
 
 --^^^^^^^^^^^^^^^^^ Buttons to Change Scenes ^^^^^^^^^^^^^^^--
 --==================== Parplin Transitions ===================--
+
+-- some forward declarations of the object assosiated with parplin
 local playMove, playPreview, moveTable, playShake, playCount
 playCount = 1; moveTable = {}
 alexPlay = nil
 
 local parplinPlayedHand
 
+
+-- user played rock
 local function alexPlayedRock( event )
     alexPlay = true
     alex.choice = 1
 end
 
+-- user played paper
 local function alexPlayedPaper( event )
     alexPlay = true
     alex.choice = 2
 end
 
+-- user played scissor
 local function alexPlayedScissor( event )
     alexPlay = true
     alex.choice = 3
 end
 
-
+-- display the user choice if clicked in time, to register. 
 function playMove()
     parplinPlayedHand.alpha = 1
     parplinPlayedHand = display.newSprite (baddieSheet, seqDataParplin)
@@ -208,6 +220,7 @@ function playMove()
 
 
     if moveTable[playCount] == 1 and playCount <= 3 then 
+         -- show parplin move and set the sequence
         transition.to(parplin, {time = 1500, onComplete=playShake})
         parplin:setSequence( "set" )
         parplin:play()
@@ -216,6 +229,7 @@ function playMove()
         parplinPlayedHand:play()
 
     elseif moveTable[playCount] == 2 and playCount <= 3 then
+         -- show parplin move and set the sequence
         transition.to(parplin, {time = 1500, onComplete=playShake})
         parplin:setSequence( "set" )
         parplin:play()
@@ -224,6 +238,7 @@ function playMove()
         parplinPlayedHand:play()
 
     elseif moveTable[playCount] == 3 and playCount <= 3 then
+         -- show parplin move and set the sequence
         transition.to(parplin, {time = 1500, onComplete=playShake})
         parplin:setSequence( "set" )
         parplin:play()
@@ -232,6 +247,9 @@ function playMove()
         parplinPlayedHand:play()
     end
 
+    --display alex kidd move, and calculate the win/lose
+    --this implementation will also count a tie as a win for alex kidd....
+    -- because he is the hero.
     if alexPlay then
         alexPlay = false
         if alex.choice == 1 then         
@@ -248,6 +266,7 @@ function playMove()
             if moveTable[playCount] == 1 then alex.lose = alex.lose + 1 else alex.win = alex.win + 1 end
         end
     else
+        -- if the user didnt play in time, play the loseing hand for alex kidd.
         alexPlay = false
         if moveTable[playCount] == 1 then          
             alex:setSequence("scissor")
@@ -259,22 +278,25 @@ function playMove()
             alex:setSequence("paper")
             alex:play()
         end
-        alex.lose = alex.lose + 1
+        alex.lose = alex.lose + 1           -- inc the lose
     end
 
     playCount = playCount + 1
 end
 
 function playShake()
+    -- remove the last played hand from parplin
     if parplinPlayedHand then delete(parplinPlayedHand) end
+
+    -- total number of hand to play is three
     if playCount > 3 then
-        parplin:setSequence("taunt")
+        parplin:setSequence("taunt")    -- set parplin to taunt
         parplin:play()
 
         alex:setSequence("normal")
-        alex:pause()
-        alex:setFrame(2)
-        playCount = 1
+        alex:pause()                -- pause alex kidd
+        alex:setFrame(2)            -- setup for replay and stop alex animation
+        playCount = 1               -- setup for replay set playcount to 1
 
         transition.fadeOut( btnRock, { time=1000, onComplete=delete } )
         transition.fadeOut( btnPaper, { time=1000, onComplete=delete} )
@@ -283,56 +305,64 @@ function playShake()
         nextLevelMessage()
         --add what happens on a win or lose
     else 
-
-        parplin:setSequence("shake")
+        -- continue the play sequence and go to the next hand. 
+        parplin:setSequence("shake")    -- shake for 1500ms
         parplin:play()
 
-        alex:setSequence("shake")
+        alex:setSequence("shake")       -- shake for 1500ms
         alex:play()
         transition.to(parplin, {time = 1500, onComplete=playMove})
     end
 end
 
+
+
 function playPreview()
+    -- create ai moves
     for i=1,3 do
         moveTable[i] = math.random(1,3) 
+        -- add the hand to the screen as a preview above parplins head.
         local parplinHand = display.newSprite (baddieSheet, seqDataParplin)
         parplinHand.x = display.contentCenterX+42 + 16*(i-1)
         parplinHand.y = display.contentCenterY+15
 
-        btnGo.param:insert( parplinHand )
-
-        if (moveTable[i] == 1) then
+        if (moveTable[i] == 1) then             -- show rock
             parplinHand:setSequence( "rock" )
             parplinHand:play()
-        elseif (moveTable[i] == 2) then
+        elseif (moveTable[i] == 2) then         -- show paper
             parplinHand:setSequence( "paper" )
             parplinHand:play()
-        elseif (moveTable[i] == 3) then
+        elseif (moveTable[i] == 3) then         -- show scissor
             parplinHand:setSequence( "scissor" )
             parplinHand:play()
         end
 
+        -- after 5s remove and delete the preview.
         local handTimer = timer.performWithDelay(5000, function()
             delete(parplinHand)
         end, 1)
     end
+    -- move to shake and start the play loop
     transition.to(parplin, {time = 5000, onComplete=playShake})
 end
 
 --==================== Parplin Transitions ===================--
 
+-- play the walking animation
 local function startWalking( event )
     alex:play()
     transition.fadeOut( btnGo, { time=1000, onComplete=delete } )
 end
 
+-- stop the waling animation and show preview
 local function stopWalking( event )
     alex:pause()
     alex:setFrame(2)
-    playPreview()
+    playPreview() -- show the preview
 end
 
+
+-- listener from the widget 
 local function go( event )
     transition.to(alex, {time = 2500, x=135, onStart=startWalking, onComplete=stopWalking})
 end
@@ -356,7 +386,7 @@ function scene:create( event )
     alex:setFrame(2)
     alex.x = display.contentCenterX-95
     alex.y = display.contentCenterY+58
-    alex.lose = 0
+    alex.lose = 0       -- set the win/lose to 0
     alex.win = 0
 
     alex.anchorX = 0
@@ -448,13 +478,16 @@ function scene:show( event )
             isEnabled = true,
         }
     )
+    -- add parplin to the sceneGroup and set alpha to 0
     parplinPlayedHand = display.newSprite (baddieSheet, seqDataParplin)
     parplinPlayedHand.alpha = 0
+
+    -- reset alex kidds posistion back to start
     alex.x = display.contentCenterX-95
-    alex.win = 0
+    alex.win = 0    --reset
     alex.lose = 0
 
-
+    --insert everything
     sceneGroup:insert( btnGo )
     sceneGroup:insert( btnPaper )
     sceneGroup:insert( btnRock )
@@ -463,6 +496,9 @@ function scene:show( event )
 
     elseif ( phase == "did" ) then
         parplin:play()
+        local text = "level "..level.." Attempt "..attempt
+        local title = display.newText( sceneGroup, text, display.contentCenterX, 15, 100, 30, monospaced, 5 )
+        title:setFillColor( 0,0,0 )
         -- Called when the scene is now on screen.
         -- Insert code here to make the scene come alive.
         -- Example: start timers, begin animation, play audio, etc.
